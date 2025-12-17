@@ -13,6 +13,11 @@ in {
       default = "${config.home.homeDirectory}/.local/share/nvim";
     };
 
+    manageLazy = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+    };
+
     plugins = lib.mkOption {
       type = with lib.types; listOf package;
       default = [];
@@ -41,11 +46,11 @@ in {
       (pkgs.writeShellScriptBin "nvim" ''
         export PATH="${lib.makeBinPath cfg.lsps}:$PATH"
         exec "${cfg.package}/bin/nvim" \
-          --cmd "set rtp^=${cfg.deployPath}/lazy/lazy.nvim" \
+          ${if cfg.manageLazy then ''--cmd "set rtp^=${cfg.deployPath}/lazy/lazy.nvim" \'' else ""}
           "$@"
       '')
     ];
-    home.file."${cfg.deployPath}/lazy/lazy.nvim".source = pkgs.vimPlugins.lazy-nvim;
+    home.file."${cfg.deployPath}/lazy/lazy.nvim" = lib.mkIf cfg.manageLazy { source = pkgs.vimPlugins.lazy-nvim; };
     home.file."${cfg.deployPath}/site".source = pkgs.symlinkJoin {
       name = "nvim-treesitter-parsers";
       paths = (pkgs.vimPlugins.nvim-treesitter.withPlugins (_: cfg.treesitter-grammars)).dependencies;

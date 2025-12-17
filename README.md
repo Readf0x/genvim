@@ -38,11 +38,8 @@ In your neovim config:
 ```lua
 require("lazy").setup({
   {
-    dir = vim.fn.stdpath("data") .. "/nix-plugins",
-    lazy = true,
-  },
-  {
-    "telescope.nvim",
+    name = "telescope.nvim",
+    dir = vim.fn.stdpath("data") .. "/nix-plugins/telescope.nvim",
     dependencies = { "plenary.nvim" },
     cmd = "Telescope",
   },

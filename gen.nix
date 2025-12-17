@@ -21,6 +21,14 @@ in {
       '';
     };
 
+    treesitter-grammars = lib.mkOption {
+      type = with lib.types; listOf package;
+      default = [];
+      description = ''
+        symlinked to `''${deployPath}/site`.
+      '';
+    };
+
     lsps = lib.mkOption {
       type = with lib.types; listOf package;
       default = [];
@@ -38,6 +46,10 @@ in {
       '')
     ];
     home.file."${cfg.deployPath}/lazy/lazy.nvim".source = pkgs.vimPlugins.lazy-nvim;
+    home.file."${cfg.deployPath}/site".source = pkgs.symlinkJoin {
+      name = "nvim-treesitter-parsers";
+      paths = (pkgs.vimPlugins.nvim-treesitter.withPlugins (_: cfg.treesitter-grammars)).dependencies;
+    };
     home.file."${cfg.deployPath}/nix-plugins".source =
       pkgs.linkFarm "nvim-nix-plugins" (map (p: {
         name = p.pname or p.name;

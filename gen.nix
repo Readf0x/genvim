@@ -9,7 +9,7 @@ in {
     };
 
     deployPath = lib.mkOption {
-      type = lib.types.string;
+      type = lib.types.str;
       default = "${config.home.homeDirectory}/.local/share/nvim";
     };
 
@@ -33,7 +33,7 @@ in {
       (pkgs.writeShellScriptBin "nvim" ''
         export PATH="${lib.makeBinPath cfg.lsps}:$PATH"
         exec "${cfg.package}/bin/nvim" \
-          --cmd "set rtp^=$(${cfg.deployPath}/lazy/lazy.nvim)" \
+          --cmd "set rtp^=${cfg.deployPath}/lazy/lazy.nvim" \
           "$@"
       '')
     ];

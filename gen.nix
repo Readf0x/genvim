@@ -18,6 +18,8 @@ in {
       default = true;
     };
 
+    lua-plugin = lib.mkEnableOption "genvim lua helper";
+
     plugins = lib.mkOption {
       type = with lib.types; listOf package;
       default = [];
@@ -55,6 +57,29 @@ in {
       name = "nvim-treesitter-parsers";
       paths = (pkgs.vimPlugins.nvim-treesitter.withPlugins (_: cfg.treesitter-grammars)).dependencies;
     };
+    home.file.".config/nvim/lua/genvim.lua" =
+      lib.mkIf cfg.lua-plugin { text = ''
+        local M = {}
+
+        M.plugins = vim.fn.stdpath("data") .. "/nix-plugins"
+
+        function M.inject_dirs(specs)
+          base = base or M.plugins
+
+          for _, spec in ipairs(specs) do
+            if type(spec) == "table"
+              and spec.name
+              and not spec.dir
+            then
+              spec.dir = base .. "/" .. spec.name
+            end
+          end
+
+          return specs
+        end
+
+        return M
+      '';};
     home.file."${cfg.deployPath}/nix-plugins".source =
       pkgs.linkFarm "nvim-nix-plugins" (map (p: {
         name = p.pname or p.name;

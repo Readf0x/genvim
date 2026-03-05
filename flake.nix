@@ -1,1 +1,1 @@
-{ outputs.homeModules.default = import ./gen.nix; }
+{ outputs = {...}: { homeModules.default = import ./gen.nix; }; }

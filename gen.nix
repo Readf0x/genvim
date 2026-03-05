@@ -8,11 +8,16 @@ in {
       default = pkgs.neovim;
     };
 
+    deployPath = lib.mkOption {
+      type = lib.types.string;
+      default = ".local/share/nvim/nix-plugins";
+    };
+
     plugins = lib.mkOption {
       type = with lib.types; listOf package;
       default = [];
       description = ''
-        symlinked to `~/.local/share/nvim/nix-plugins`, which is accessible via `vim.fn.stdpath("data") .. '/nix-plugins'`.
+        symlinked to `deployPath`, which defaults to `~/.local/share/nvim/nix-plugins` and is accessible via `vim.fn.stdpath("data") .. '/nix-plugins'`.
       '';
     };
 
@@ -30,7 +35,7 @@ in {
         exec "${cfg.package}/bin/nvim" "$@"
       '')
     ];
-    home.file.".local/share/nvim/nix-plugins".source =
+    home.file."${cfg.deployPath}".source =
       pkgs.linkFarm "nvim-nix-plugins" (map (p: {
         name = p.pname or p.name;
         path = p;

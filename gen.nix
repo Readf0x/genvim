@@ -44,9 +44,15 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    home.packages = [
+    home.packages = let
+      lua_pkgs = with pkgs; [ lua51Packages.lua luajit luajitPackages.luarocks ];
+    in [
       (pkgs.writeShellScriptBin "nvim" ''
-        export PATH="${lib.makeBinPath cfg.lsps}:$PATH"
+        export PATH="${lib.makeBinPath (cfg.lsps ++ lua_pkgs)}:$PATH"
+        ${lib.concatStrings (map (pkg: ''
+          export LUA_PATH="${pkg}/share/lua/5.1/?.lua;${pkg}/share/lua/5.1/?/init.lua;$LUA_PATH"
+          export LUA_CPATH="${pkg}/lib/lua/5.1/?.so;$LUA_CPATH"
+        '') lua_pkgs)}
         exec "${cfg.package}/bin/nvim" \
           ${if cfg.manageLazy then ''--cmd "set rtp^=${cfg.deployPath}/lazy/lazy.nvim" \'' else ""}
           "$@"

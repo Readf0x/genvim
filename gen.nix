@@ -10,14 +10,14 @@ in {
 
     deployPath = lib.mkOption {
       type = lib.types.string;
-      default = ".local/share/nvim/nix-plugins";
+      default = "${config.home.homeDirectory}/.local/share/nvim";
     };
 
     plugins = lib.mkOption {
       type = with lib.types; listOf package;
       default = [];
       description = ''
-        symlinked to `deployPath`, which defaults to `~/.local/share/nvim/nix-plugins` and is accessible via `vim.fn.stdpath("data") .. '/nix-plugins'`.
+        symlinked to `''${deployPath}/nix-plugins`, which defaults to `~/.local/share/nvim/nix-plugins` and is accessible via `vim.fn.stdpath("data") .. '/nix-plugins'`.
       '';
     };
 
@@ -32,10 +32,13 @@ in {
     home.packages = [
       (pkgs.writeShellScriptBin "nvim" ''
         export PATH="${lib.makeBinPath cfg.lsps}:$PATH"
-        exec "${cfg.package}/bin/nvim" "$@"
+        exec "${cfg.package}/bin/nvim" \
+          --cmd "set rtp^=$(${cfg.deployPath}/lazy/lazy.nvim)" \
+          "$@"
       '')
     ];
-    home.file."${cfg.deployPath}".source =
+    home.file."${cfg.deployPath}/lazy/lazy.nvim".source = pkgs.vimPlugins.lazy-nvim;
+    home.file."${cfg.deployPath}/nix-plugins".source =
       pkgs.linkFarm "nvim-nix-plugins" (map (p: {
         name = p.pname or p.name;
         path = p;
